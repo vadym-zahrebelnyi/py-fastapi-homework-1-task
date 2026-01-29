@@ -3,10 +3,9 @@ import math
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.util import await_only
 
 from database import get_db, MovieModel
-from schemas import  MovieListResponseSchema, MovieDetailResponseSchema
+from schemas import MovieListResponseSchema, MovieDetailResponseSchema
 
 
 router = APIRouter()
@@ -19,10 +18,9 @@ async def get_movies(
         per_page: int = Query(10, ge=1, le=20)
 ) -> MovieListResponseSchema:
     total_count = await db.scalar(select(func.count(MovieModel.id)))
-
-
     total_pages = math.ceil(total_count / per_page)
     offset = (page - 1) * per_page
+
     if total_count == 0 or offset >= total_count:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -36,7 +34,6 @@ async def get_movies(
             .limit(per_page)
         )
     ).all()
-
 
     prefix_url = "/theater/movies/"
 
@@ -71,4 +68,3 @@ async def get_movie_detail(
     return MovieDetailResponseSchema.model_validate(
         movie_detail, from_attributes=True
     )
-
